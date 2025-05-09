@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Visual RL in Differentiable Simulation for DiffSim2Real Deformable Manipulation</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1"> 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.15/dist/katex.min.css" integrity="sha384-Htz9HMhiwV8GuQ28Xr9pEs1B4qJiYu/nYLLwlDklR53QibDfmQzi7rYxXhMH/5/u" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.15/dist/katex.min.js" integrity="sha384-bxmi2jLGCvnsEqMuYLKE/KsVCxV3PqmKeK6Y6+lmNXBry6+luFkEOsmp5vD9I/7+" crossorigin="anonymous"></script>
+
+    <style type="text/css">
+        :root {
+            --black: rgb(29, 29, 31);  /* #1d1d1f */
+            --cyan: rgb(102, 204, 238);
+            --blue: rgb(68, 119, 170);
+            --gray: rgb(187, 187, 187);
+            --red: rgb(238, 102, 119);
+            --reda: rgba(238, 102, 119, 0.66);
+            --yellow: rgb(204, 187, 68);
+            --green: rgb(34, 136, 51);
+        
+            --darkblue: rgb(0, 68, 136);
+            --darkbluea: rgba(0, 68, 136, 0.66);
+            /* --darkerblue: rgb(34, 34, 85); */
+            --milk: rgb(253, 255, 245);
+            --darkgray: #6e6e6e;
+            --shadow: 3px 3px 9px var(--gray);
+        
+            /* System font stack https://css-tricks.com/snippets/css/system-font-stack/ */
+            --systemfont: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+            --monofont: "Menlo", "Consolas", "Monaco", "Liberation Mono", "Lucida Console", monospace;
+        }
+        
+        /*
+            1rem = 10px
+            https://www.aleksandrhovhannisyan.com/blog/respecting-font-size-preferences-rems-62-5-percent/
+        */
+        html {
+            font-size: 62.5%;
+        }
+        body {
+            font-size: 1.6rem;
+        }
+        
+        html, body {
+            margin: 0 auto;
+            height: 100%;
+        }
+        
+        body {
+            padding: 20px;
+            line-height: 1.5;
+            color: var(--black);
+            /* background-color: rgb(250, 250, 250); */
+            background-color: var(--white);
+            /* font-family: 'Open Sans', sans-serif; */
+            font-family: var(--systemfont);
+            -moz-osx-font-smoothing: grayscale;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+            -webkit-text-size-adjust: none;
+            text-size-adjust: none;
+        }
+        
+        div {
+            display: block;
+        }
+        
+        br {
+            user-select: none;
+        }
+        
+        .container {
+            max-width: 800px;
+            min-width: 320px;
+            margin-left: auto;
+            margin-right: auto;
+            padding-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        /*
+            Hyperlink underlining, multiline on hover
+            https://www.dannyguo.com/blog/animated-multiline-link-underlines-with-css/
+            https://css-tricks.com/styling-underlines-web/
+        */
+        a {
+            text-decoration: none;
+            color: var(--blue);
+        }
+        a:hover, a:hover > i, a:focus, a:focus > i {
+            color: var(--darkblue);
+        }
+        a {
+            /* transition: all 0.1s ease-in; */
+            background-image: linear-gradient(var(--darkbluea), var(--darkbluea));
+            background-position: 0% 100%;
+            background-repeat: no-repeat;
+            background-size: 0% 1.5px;
+        }
+        a:hover, a:focus {
+            background-size: 100% 1.5px;
+            /* border-bottom: 1.5px solid rgb(68, 119, 170); */
+        }
+        
+        p {
+            display: inline;
+        }
+        
+        footer {
+            margin-top: 20px;
+            /* padding-top: 20px; */
+            /* border-top: 0.75px solid var(--gray); */
+            text-align: center;
+            color: var(--darkgray);
+        }
+        
+        .site-name {
+            text-align: center;
+            font-weight: 500;
+            font-size: 3.2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        b {
+            font-weight: 600;
+        }
+        
+        h3 {
+            margin-bottom: 0;
+            font-weight: 500;
+            /* border-bottom: 0.75px solid var(--gray); */
+            /* text-transform: capitalize; */
+        }
+        
+        img {
+            display: block;
+            max-width: 100%;
+            margin: auto; /* center in div */
+            border-radius: .25rem;
+        }
+        
+        hr {
+            border: 0;
+            width: 125%;
+            margin-left: -12.5%;
+            height: 1.75px;
+            background-image: linear-gradient(to right,
+                rgba(0, 0, 0, 0),
+                rgba(187, 187, 187, 0.2),
+                rgba(29, 29, 31, 0.15),
+                rgba(187, 187, 187, 0.2),
+                rgba(0, 0, 0, 0));
+        }
+        
+        button {
+            background-color: white;
+            border-radius: 0.5em;
+            border: 1px solid var(--darkbluea);
+            padding: 0.5em 1.5em;
+            text-align: center;
+            text-decoration: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--darkbluea)
+        }
+        
+        button:hover {
+            background-color: white;
+            border: 1px solid var(--darkblue);
+            color: var(--darkblue);
+        }
+        
+        .task-video {
+            width: 32.5%;
+            display: inline-block;
+        }
+        
+        .task-video > div {
+            font-weight: 500;
+            font-size: 2.0rem;
+            font-family: "KaTeX_SansSerif", var(--systemfont);
+        }
+        
+        .caption {
+            text-align: center;
+        }
+        
+        .alg-caption {
+            text-align: center;
+            font-weight: 200;
+            font-size: 1.75rem;
+            font-family: "KaTeX_SansSerif", var(--systemfont);
+        }
+        
+        .icon-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 0.5em 1em;
+            flex-wrap: wrap;
+            vertical-align: baseline;
+            user-select: none;
+        }
+        
+        .codebox-pre {
+            border: none;
+            background-color: #fafafa !important;
+            font-family: var(--monofont);
+            font-size: 0.95em;
+            text-align: left;
+            padding: 1em;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+        
+        pre code {
+           white-space: pre;
+        }
+        
+        /* 
+            https://kittygiraudel.com/2020/12/10/accessible-icon-links/
+            https://www.scottohara.me/blog/2019/05/22/contextual-images-svgs-and-a11y.html
+            https://css-tricks.com/accessible-svgs/
+        */
+        .screenreader {
+            border: 0;
+            clip: rect(1px, 1px, 1px, 1px);
+            -webkit-clip-path: inset(50%);
+            clip-path: inset(50%);
+            height: 1px;
+            overflow: hidden;
+            margin: -1px;
+            padding: 0;
+            position: absolute;
+            width: 1px;
+            white-space: nowrap;
+            user-select: none;
+        }
+        
+        @media only screen and (min-width: 992px) {
+            .container {
+                max-width: 850px;
+            }
+        }
+        
+        @media only screen and (max-width: 640px) and (min-width: 319px){
+            html {
+                font-size: 54.6875%;
+            }
+        
+            .site-name {
+                font-size: 2.6rem;
+                max-width: 300px;
+            }
+        }
+    </style> 
+</head>
+
+<body>
+    <div class="container">
+        <header class="menu">
+            <div class="site-name"> Visual Reinforcement Learning<br /> in Differentiable Simulation for<br /> DiffSim2Real Deformable Manipulation </div> <br />
+        </header>
+        <div style="text-align: center;" class="about-container">
+            <hr> <br />
+            <div> <b>TL;DR</b> <i> We present an approach using data and gradients from parallel differentiable simulation and differentiable rendering to train end-to-end visual first-order RL for diffsim2real deformable manipulation. </i> </div> <br />
+            <div> <b>Overview video (with audio)</b> <br /><br />
+                <video width="100%" controls>
+                    <source src="assets/diffsim2real.mp4" type="video/mp4">
+                </video>
+            </div>
+        </div>
+    </div>
+    </div>
+</body>
+</html>
